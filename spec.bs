@@ -1,0 +1,72 @@
+<pre class='metadata'>
+Title: RDF Trust Envelopes
+Shortname: RDF Trust Envelopes
+Warning: Not Ready
+Level: 1
+Level: none
+Status: LD
+Repository: KNowledgeOnWebScale/rdf-trust-envelopes
+URL: https://knowledgeonwebscale.github.io/rdf-trust-envelopes/
+Editor: Ruben Dedecker, [IDLab - Ghent University](https://knows.idlab.ugent.be), ruben.dedecker@ugent.be
+Editor: Pieter Colpaert, https://pietercolpaert.be
+Abstract: This specification describes the modeling of trust envelopes in RDF
+Markup Shorthands: markdown yes, css no
+</pre>
+
+
+
+Introduction {#intro}
+=====================
+
+
+
+
+
+Defining the Trust Envelope {#context_assocations}
+==================================================
+
+
+
+```text/turtle
+
+_:policyGraph {
+  _:policy a :Policy;
+    :target [ _:envelopeGraph, _:dataGraph ]
+}
+
+_:signatureGraph {
+  _:signature a :Signature
+    :target [ _:envelopeGraph, _:dataGraph ]
+}
+
+_:provenanceGraph {
+  _:dataGraph :origin <X>.
+}
+
+
+=======================================
+
+_:dataGraph {
+
+}
+
+
+_:envelopeGraph {
+  _:envelope a :Envelope
+    
+    :content _:dataGraph;
+
+    :policy _:policyGraph;
+    :signature _:signatureGraph;
+    :provenance _:provenanceGraph;
+
+  _:dataGraph :subject :Pieter;
+  _:policyGraph :subject _:policy
+  _:provenanceGraph :subject _:policy
+
+}
+
+=======================================
+
+
+```
