@@ -18,58 +18,64 @@ Markup Shorthands: markdown yes, css no
 Introduction {#intro}
 =====================
 
-
-
-
-
+The RDF Trust Envelope is a modeling approach for straightforward definition and processing of contextual information in transit.
+It models an association of a set of RDF statements with its policy, signature, and provenance information.
 
 
 
 Defining the Trust Envelope {#context_assocations}
 ==================================================
 
+<figure id="envelop-listing" class="listing">
+```turtle
+@prefix ca: <https://w3id.org/contextassociation#>.
+@prefix te: <https://w3id.org/trustenvelope#>.
+@prefix : <http://example.org/>.
 
+_:signatureGraph a ca:GraphIdentifier.
+_:policyGraph a ca:GraphIdentifier.
+_:provenanceGraph a ca:GraphIdentifier.
+_:dataGraph a ca:GraphIdentifier.
 
-```text/turtle
+_:envelope a TrustEnvelope;
+  te:signatureGraph: _:signatureGraph;
+  te:policyGraph: _:policyGraph;
+  te:provenanceGraph: _:provenanceGraph;
+  te:signature: _:signature;
+
+_:signatureGraph te:primaryTopic _:signature.
+_:policyGraph te:primaryTopic _:policy.
+_:provenanceGraph te:primaryTopic _:dataGraph.
+_:dataGraph te:primaryTopic :Ruben.
+
+_:signatureGraph {
+  _:signature a :Signature;
+    :value "..."^^xsd:string;
+    :issuer :Ruben;
+    :target _:graphUnion.
+
+  _:graphUnion a ca:GraphUnion;
+    ca:includes _:policyGraph, _:provenanceGraph, _:dataGraph.
+}
 
 _:policyGraph {
   _:policy a :Policy;
-    :target [ _:envelopeGraph, _:dataGraph ]
-}
-
-_:signatureGraph {
-  _:signature a :Signature
-    :target [ _:envelopeGraph, _:dataGraph ]
+    :target _:dataGraph;
 }
 
 _:provenanceGraph {
-  _:dataGraph :origin <X>.
+  _:dataGraph :origin <https://pod.ruben.org/>.
 }
-
-
-=======================================
 
 _:dataGraph {
-
+  :Ruben foaf:name "Ruben";
+    foaf:knows :Pieter.
 }
-
-
-_:envelopeGraph {
-  _:envelope a :Envelope
-    
-    :content _:dataGraph;
-
-    :policy _:policyGraph;
-    :signature _:signatureGraph;
-    :provenance _:provenanceGraph;
-
-  _:dataGraph :subject :Pieter;
-  _:policyGraph :subject _:policy
-  _:provenanceGraph :subject _:policy
-
-}
-
-=======================================
-
-
 ```
+<figcaption markdown="block">
+Trust Envelope 
+</figcaption>
+</figure>
+
+
+
