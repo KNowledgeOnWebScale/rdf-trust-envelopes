@@ -21,55 +21,72 @@ Introduction {#intro}
 The RDF Trust Envelope is a modeling approach for straightforward definition and processing of contextual information in transit.
 It models an association of a set of RDF statements with its policy, signature, and provenance information.
 
+To model Trust Envelopes in RDF, we make use of the [Context Association model](https://knowledgeonwebscale.github.io/rdf-context-associations/)
+that models target sets of statements as named graphs with a blank node identifier that can be referenced to target the contained RDF graph.
+
 
 
 Defining the Trust Envelope {#context_assocations}
 ==================================================
 
+For a target Blank Node Graph `T` with name identifier `Tname` that we wish to wrap in an envelope,
+we use the following steps to create our trust envelope:
+
+1. Model an envelope entity `e` of type te:Envelope in a Blank Node Graph `E` with name identifier `Ename`.
+2. Create a signature `s` over the `T`, by hashing all quads where the graph term = `Tname`.
+3. Create a policy `p` over `T`.
+4. Add signature `s` to envelope `e` using the `te:signature` predicate
+5. Add policy `p` to envelope `e` using the `te:policy` predicate
+6. Define the target graph `T` on envelope `e` using the `te:data` predicate
+7. Define `Tname` to be of type `ca:GraphIdentifier` to enforce the reference to its connected RDF Graph
+8. Add any provenance information for `T` to the envelope graph `E`
+9. Sign the envelope Graph `E`, and optionally contain this signature in its own Graph
+10. Define `Ename` be of type `ca:GraphIdentifier`
+
+
 <figure id="envelop-listing" class="listing">
 ```turtle
-@prefix ca: <https://w3id.org/contextassociation#>.
-@prefix te: <https://w3id.org/trustenvelope#>.
-@prefix : <http://example.org/>.
+@prefix ca: <http://ex.org/context-associations#>
+@prefix te: <http://ex.org/trust-envelopes#>
+@prefix sign: <http://ex.org/signatures#>
+@prefix pol: <http://ex.org/policy#>
+@prefix prov: <http://ex.org/provenance#>
 
-_:signatureGraph a ca:GraphIdentifier.
-_:policyGraph a ca:GraphIdentifier.
-_:provenanceGraph a ca:GraphIdentifier.
-_:dataGraph a ca:GraphIdentifier.
-
-_:envelope a TrustEnvelope;
-  te:signatureGraph: _:signatureGraph;
-  te:policyGraph: _:policyGraph;
-  te:provenanceGraph: _:provenanceGraph;
-  te:signature: _:signature;
-
-_:signatureGraph te:primaryTopic _:signature.
-_:policyGraph te:primaryTopic _:policy.
-_:provenanceGraph te:primaryTopic _:dataGraph.
-_:dataGraph te:primaryTopic :Ruben.
-
-_:signatureGraph {
-  _:signature a :Signature;
-    :value "..."^^xsd:string;
-    :issuer :Ruben;
-    :target _:graphUnion.
-
-  _:graphUnion a ca:GraphUnion;
-    ca:includes _:policyGraph, _:provenanceGraph, _:dataGraph.
+_:optionalSignatureGraph {
+    _:envelopeSignature a sign:Signature;
+        sign:target _:envelopeGraph;
+        sign:issuer <Ruben>;
+        sign:value "...".
+    _:envelopeGraph a ca:GraphIdentifier;
 }
 
-_:policyGraph {
-  _:policy a :Policy;
-    :target _:dataGraph;
-}
+_:envelopeGraph {
+    _:envelope a te:Envelope;
+        te:creator <Ruben>;
+        te:signature _:s;
+        te:policy _:p;
+        te:data _:dataGraph.
+    
+    _:s a sign:Signature;
+        sign:target _:dataGraph;
+        sign:issuer <Ruben>;
+        sign:value "...".
 
-_:provenanceGraph {
-  _:dataGraph :origin <https://pod.ruben.org/>.
+    _:p a pol:Policy;
+        pol:permission: [
+            pol:issuer <Ruben>;
+            pol:target _:dataGraph.
+            pol:action pol:Use.
+        ]
+    
+    _:dataGraph a ca:GraphIdentifier;
+        prov:origin <pod.org/ruben/resource1>;
+        prov:generatedAt "2025-01-05"^^xsd:date.
 }
 
 _:dataGraph {
-  :Ruben foaf:name "Ruben";
-    foaf:knows :Pieter.
+    <a> <b> <c> .
+    <x> <y> <z> .
 }
 ```
 <figcaption markdown="block">
